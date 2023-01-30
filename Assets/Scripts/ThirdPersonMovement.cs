@@ -261,7 +261,7 @@ public class ThirdPersonMovement : MonoBehaviour
             currentMoveSpeed = 0;
         }
         animator.SetFloat(HashForward, currentMoveSpeed/20);
-        //Debug.Log(currentMoveSpeed);
+        Debug.Log(currentMoveSpeed/20);
         if (!straffing)
         {
             float turnPower = moveSpeed / currentMoveSpeed;
@@ -269,7 +269,7 @@ public class ThirdPersonMovement : MonoBehaviour
             vertical = Input.GetAxisRaw("Vertical");
             if (horizontal != 0)
             {
-                Debug.Log(toTurn);
+                //Debug.Log(toTurn);
                 //float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
                 transform.Rotate(new Vector3(0.0f, horizontal * (50 + (turnPower * 2)), 0.0f) * Time.deltaTime);
                 if (horizontal < 0 && toTurn > -1)
@@ -561,13 +561,14 @@ public class ThirdPersonMovement : MonoBehaviour
                 animator.SetFloat(HashStrafe, strafeDirection);
             }
         //Debug.Log("Move Input :" + moveInput);
+        
         GetTargetVelocityAndAcceleration(moveInput, wasRunning, wasGrounded, out Vector3 moveDirection, out float targetSpeed, out float speedAcceleration, out float directionAcceleration);
         
         if (currentMoveSpeed > targetSpeed && targetSpeed != 0f)
         {
             speedAcceleration = accelerationWhenSlowing;
         }
-
+        //speedAcceleration = speedAcceleration - (moveSpeed / currentMoveSpeed);
         currentMoveSpeed = Mathf.Lerp(currentMoveSpeed, targetSpeed, speedAcceleration * Time.deltaTime);
 
         if (currentMoveSpeed < 0.001f)
