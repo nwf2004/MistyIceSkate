@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Water
   - Ice
+  - PowerUp
   layers:
   - Default
   - TransparentFX

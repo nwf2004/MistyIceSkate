@@ -260,18 +260,18 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             currentMoveSpeed = 0;
         }
-        animator.SetFloat(HashForward, currentMoveSpeed/10);
+        animator.SetFloat(HashForward, currentMoveSpeed/20);
         //Debug.Log(currentMoveSpeed);
         if (!straffing)
         {
-
+            float turnPower = moveSpeed / currentMoveSpeed;
             horizontal = Input.GetAxisRaw("Horizontal");
             vertical = Input.GetAxisRaw("Vertical");
             if (horizontal != 0)
             {
                 Debug.Log(toTurn);
                 //float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-                transform.Rotate(new Vector3(0.0f, horizontal * 50, 0.0f) * Time.deltaTime);
+                transform.Rotate(new Vector3(0.0f, horizontal * (50 + (turnPower * 2)), 0.0f) * Time.deltaTime);
                 if (horizontal < 0 && toTurn > -1)
                 {
                     toTurn -= 3 * Time.deltaTime;
@@ -453,7 +453,7 @@ public class ThirdPersonMovement : MonoBehaviour
                     if (currentMoveSpeed < 2)
                     {
                         currentMoveSpeed = 0;
-                        speedDeccelerationGrounded = .1f;
+                        speedDeccelerationGrounded = .2f;
                         StopBrakingAnimation();
                     }
                     else
@@ -464,7 +464,7 @@ public class ThirdPersonMovement : MonoBehaviour
                 }
                 else
                 {
-                    speedDeccelerationGrounded = .1f;
+                    speedDeccelerationGrounded = .2f;
                     StopBrakingAnimation();
                 }
             }
@@ -497,7 +497,7 @@ public class ThirdPersonMovement : MonoBehaviour
                     if (currentMoveSpeed < 2)
                     {
                         currentMoveSpeed = 0;
-                        speedDeccelerationGrounded = .1f;
+                        speedDeccelerationGrounded = .2f;
                         StopBrakingAnimation();
                     }
                     else
@@ -508,7 +508,7 @@ public class ThirdPersonMovement : MonoBehaviour
                 }
                 else
                 {
-                    speedDeccelerationGrounded = .1f;
+                    speedDeccelerationGrounded = .2f;
                     StopBrakingAnimation();
                 }
             }
