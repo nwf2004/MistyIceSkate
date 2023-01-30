@@ -12,6 +12,7 @@ public class ThirdPersonMovement : MonoBehaviour
 
     public float turnSmoothTime = 1f;
     float turnSmoothVelocity;
+    public CirnoScript cirnoScript;
 
     public bool straffing;
     float previousStrafe;
@@ -24,8 +25,9 @@ public class ThirdPersonMovement : MonoBehaviour
     public float strafeDirection;
     float tempRotation;
     bool died;
+    Vector3 moveDelta;
     //
-
+    [SerializeField] CreateIce createIce;
     [SerializeField] CharacterController moveController;
     [SerializeField] Transform interpolatedTransform;
     public CharacterController MoveController => moveController;
@@ -240,46 +242,63 @@ public class ThirdPersonMovement : MonoBehaviour
             iPositionNext = transform.localPosition;
             died = false;
         }*/
+        if (GameM.Died == true)
+        {
+            transform.position = new Vector3(215.8846f, 11.157f, 194.4f);
+            currentMoveSpeed = 0;
+            //moveVelocity = Vector2.zero;
+            //moveDelta = Vector2.zero;
+            moveController.Move(Vector2.zero);
+            transform.position = new Vector3(215.8846f, 11.157f, 194.4f);
+        }
     }
 
     void FixedUpdate()
     {
-        if (MovementLocks > 0 || died)
-        {
-            wantsToJump = false;
-            iPositionNow = iPositionNext;
-            iPositionNext = transform.localPosition;
-            //currentSpeed = 0;
-            return;
-        }
         if (GameM.Died == false)
         {
             Movement();
-        }
-        else
-        {
-            currentMoveSpeed = 0;
-        }
-        animator.SetFloat(HashForward, currentMoveSpeed/20);
-        Debug.Log(currentMoveSpeed/20);
-        if (!straffing)
-        {
-            float turnPower = moveSpeed / currentMoveSpeed;
-            horizontal = Input.GetAxisRaw("Horizontal");
-            vertical = Input.GetAxisRaw("Vertical");
-            if (horizontal != 0)
+            if (GameM.Died == true)
             {
-                //Debug.Log(toTurn);
-                //float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-                transform.Rotate(new Vector3(0.0f, horizontal * (50 + (turnPower * 2)), 0.0f) * Time.deltaTime);
-                if (horizontal < 0 && toTurn > -1)
+                transform.position = new Vector3(215.8846f, 11.157f, 194.4f);
+            }
+            animator.SetFloat(HashForward, currentMoveSpeed / (moveSpeed / 2));
+            Debug.Log(currentMoveSpeed / (moveSpeed / 2));
+            if (!straffing)
+            {
+                float turnPower = moveSpeed / currentMoveSpeed;
+                horizontal = Input.GetAxisRaw("Horizontal");
+                vertical = Input.GetAxisRaw("Vertical");
+                if (horizontal != 0)
                 {
-                    toTurn -= 3 * Time.deltaTime;
+                    //Debug.Log(toTurn);
+                    //float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+                    transform.Rotate(new Vector3(0.0f, horizontal * 120 * Time.deltaTime));
+                    if (horizontal < 0 && toTurn > -1)
+                    {
+                        toTurn -= 3 * Time.deltaTime;
+                    }
+                    if (horizontal > 0 && toTurn < 1)
+                    {
+                        toTurn += 3 * Time.deltaTime;
+                    }
                 }
-                if (horizontal > 0 && toTurn < 1)
+                else
                 {
-                    toTurn += 3 * Time.deltaTime;
+                    if (toTurn > .1f)
+                    {
+                        toTurn -= 3 * Time.deltaTime;
+                    }
+                    else if (toTurn < -.1f)
+                    {
+                        toTurn += 3 * Time.deltaTime;
+                    }
+                    else
+                    {
+                        toTurn = 0;
+                    }
                 }
+                animator.SetFloat(HashTurn, toTurn);
             }
             else
             {
@@ -296,33 +315,16 @@ public class ThirdPersonMovement : MonoBehaviour
                     toTurn = 0;
                 }
             }
-            animator.SetFloat(HashTurn, toTurn);
-        }
-        else
-        {
-            if (toTurn > .1f)
+            if (fallVelocity.y < 0)
             {
-                toTurn -= 3 * Time.deltaTime;
-            }
-            else if (toTurn < -.1f)
-            {
-                toTurn += 3 * Time.deltaTime;
+                animator.SetBool(HashFalling, true);
             }
             else
             {
-                toTurn = 0;
+                animator.SetBool(HashFalling, false);
             }
+            wantsToJump = false;
         }
-        if (fallVelocity.y < 0)
-        {
-            animator.SetBool(HashFalling, true);
-        }
-        else
-        {
-            animator.SetBool(HashFalling, false);
-        }
-        wantsToJump = false;
-
     }
 
     // Update is called once per frame
@@ -532,14 +534,14 @@ public class ThirdPersonMovement : MonoBehaviour
 
             if (horizontal > 0 && straffing)
             {
-                strafeDirection += 1 * Time.deltaTime;
+                strafeDirection += 2 * Time.deltaTime;
                 if (strafeDirection > .5f)
                     strafeDirection = .5f;
                 animator.SetFloat(HashStrafe, strafeDirection);
             }
             else if (horizontal < 0 && straffing)
             {
-                strafeDirection -= 1 * Time.deltaTime;
+                strafeDirection -= 2 * Time.deltaTime;
                 if (strafeDirection < -.5f)
                     strafeDirection = -.5f;
                 animator.SetFloat(HashStrafe, strafeDirection);
@@ -548,11 +550,11 @@ public class ThirdPersonMovement : MonoBehaviour
             {
                 if (strafeDirection > 0.1f)
                 {
-                    strafeDirection -= 1 * Time.deltaTime;
+                    strafeDirection -= 3 * Time.deltaTime;
                 }
                 else if (strafeDirection < -0.1f)
                 {
-                    strafeDirection += 1 * Time.deltaTime;
+                    strafeDirection += 3 * Time.deltaTime;
                 }
                 else
                 {
@@ -621,7 +623,7 @@ public class ThirdPersonMovement : MonoBehaviour
         // Combine velocities and move
         //Debug.Log("Fall Velocity :" + fallVelocity);
         combinedVelocity = (moveVelocity) + fallVelocity + externalVelocity + physicsVelocity;
-        Vector3 moveDelta = combinedVelocity;
+        moveDelta = combinedVelocity;
         
 
         // Project our velocity onto the ground so we don't fly into the air when running downhill
@@ -708,7 +710,7 @@ public class ThirdPersonMovement : MonoBehaviour
     }
     private IEnumerator JustJumped()
     {
-        
+        cirnoScript.SkateStart();
             animator.SetBool(HashJumping, true);
         
        
@@ -722,7 +724,21 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             strafeDirection = 0f;
             GameM.Died = true;
-         
+        }
+        if (collision.tag == "Cake")
+        {
+            Destroy(collision.gameObject);
+            GameM.cakesLeft--;
+        }
+        if (collision.tag == "IceCream")
+        {
+            Destroy(collision.gameObject);
+            GameM.iceCreamLeft--;
+        }
+        if (collision.tag == "PowerUp")
+        {
+            Destroy(collision.gameObject);
+            createIce.currentIceMeter += 30;
         }
     }
 }

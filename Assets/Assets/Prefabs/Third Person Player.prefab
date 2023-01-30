@@ -125,10 +125,10 @@ GameObject:
   - component: {fileID: 7770477119956040052}
   - component: {fileID: 7770477119956040050}
   - component: {fileID: 7770477119956040051}
-  - component: {fileID: 1218491175}
+  - component: {fileID: 1218491176}
   m_Layer: 0
   m_Name: Third Person Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -182,7 +182,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6491b855b4ce47509e07852248cf178, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentSpeed: 0
   maxSpeed: 18
   turnSmoothTime: 0.3
   straffing: 0
@@ -191,17 +190,18 @@ MonoBehaviour:
   GameM: {fileID: 0}
   SkatingSpeed: 0
   strafeDirection: 0
+  createIce: {fileID: 1218491176}
   moveController: {fileID: 7770477119956040050}
   interpolatedTransform: {fileID: 7770477119140291352}
   gravityMultiplier: 1
   fallVelocityDrag: 0.25
   externalVelocityDragGrounded: 5
   externalVelocityDragAir: 1
-  moveSpeed: 20
-  initialMoveSpeed: 1
-  speedAccelerationGrounded: 0.5
+  moveSpeed: 30
+  initialMoveSpeed: 2
+  speedAccelerationGrounded: 0.2
   speedAccelerationInAir: 0.15
-  speedDeccelerationGrounded: 0.1
+  speedDeccelerationGrounded: 0.2
   speedDeccelerationInAir: 0.15
   directionAccelerationGrounded: 5
   directionAccelerationInAir: 3
@@ -244,7 +244,7 @@ MonoBehaviour:
   runSpeedAccelerationDuration: 10
   strafeSpeedMultiplier: 0.77
   strafeSpeedMultiplierWhileMoving: 0.77
-  jumpSpeed: 10
+  jumpSpeed: 8
   speedLostOnJump: 1
   speedLostOnLanding: 1
   groundLayerMask:
@@ -254,7 +254,7 @@ MonoBehaviour:
   airborneGroundCheckExtents: {x: 0.01, y: 0.18, z: 0.01}
   downwardForceAlongSlope: 8
   animator: {fileID: 5952960736087482237}
---- !u!114 &1218491175
+--- !u!114 &1218491176
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -263,9 +263,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 7770477119956040053}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00fb7957d070c4456be718cfce2e1881, type: 3}
+  m_Script: {fileID: 11500000, guid: c874e9f01ee0f4c81857b1f06d5a88d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentIceMeter: 0
+  player: {fileID: 0}
+  wasGrounded: 0
+  LastPlaceOnGround: {x: 0, y: 0, z: 0}
+  iceBlock: {fileID: 0}
 --- !u!1 &7770477120094738466
 GameObject:
   m_ObjectHideFlags: 0
@@ -367,15 +372,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2930983511836848677, guid: 3885eed8c2d591a47aac226651fcd3d2, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2930983511836848677, guid: 3885eed8c2d591a47aac226651fcd3d2, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2930983511836848677, guid: 3885eed8c2d591a47aac226651fcd3d2, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2930983511836848677, guid: 3885eed8c2d591a47aac226651fcd3d2, type: 3}
       propertyPath: m_LocalPosition.x
@@ -383,11 +388,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2930983511836848677, guid: 3885eed8c2d591a47aac226651fcd3d2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1
+      value: -1.1
       objectReference: {fileID: 0}
     - target: {fileID: 2930983511836848677, guid: 3885eed8c2d591a47aac226651fcd3d2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -0.236
       objectReference: {fileID: 0}
     - target: {fileID: 2930983511836848677, guid: 3885eed8c2d591a47aac226651fcd3d2, type: 3}
       propertyPath: m_LocalRotation.w
@@ -424,6 +429,102 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 2587073159958079647, guid: 3885eed8c2d591a47aac226651fcd3d2, type: 3}
   m_PrefabInstance: {fileID: 3691648996992694255}
   m_PrefabAsset: {fileID: 0}
+--- !u!82 &1927474907
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1214984955064655728}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!95 &5952960736087482237
 Animator:
   serializedVersion: 4
@@ -444,6 +545,38 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &1927474905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1214984955064655728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00fb7957d070c4456be718cfce2e1881, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioSource: {fileID: 1927474907}
+  iceSkateSounds: {fileID: 1927474906}
+--- !u!114 &1927474906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1214984955064655728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca889d58aa7da47cdaa05e77295c8678, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IceSkateSounds:
+  - {fileID: 8300000, guid: cf61d7ad4497ef24bb8228062be8a58c, type: 3}
+  - {fileID: 8300000, guid: f47e7db480beb784baecb3aa056733f3, type: 3}
+  - {fileID: 8300000, guid: e38fef2724429fa419cba6c6a36e582c, type: 3}
+  - {fileID: 8300000, guid: 37750ecf506c314469ecd9f3bb974b14, type: 3}
+  - {fileID: 8300000, guid: a092a4de91550284483f348b1918b87c, type: 3}
 --- !u!4 &1988249958224152010 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2930983511836848677, guid: 3885eed8c2d591a47aac226651fcd3d2, type: 3}
@@ -559,6 +692,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00fb7957d070c4456be718cfce2e1881, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioSource: {fileID: 0}
+  iceSkateSounds: {fileID: 0}
 --- !u!4 &7808395920995176363 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 058a3914acd59914db8f3ebee54022fa, type: 3}

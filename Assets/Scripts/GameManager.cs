@@ -1,32 +1,51 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     public bool Died;
-    public GameObject player;
+    public GameObject playerToSpawn;
+    public GameObject currentPlayerInScene;
+    [SerializeField] CreateIce createIce;
+    public GameObject CMFreecam;
+    public Text IceCreamText;
+    public Text PFText;
+    public Text CakeText;
+    public float cakesLeft;
+    public float iceCreamLeft;
+    float perfectFreeze;
     // Start is called before the first frame update
+    //display.text = countDown.ToString();
     void Start()
     {
+        cakesLeft = 10;
+        iceCreamLeft = 10;
         Died = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        perfectFreeze = createIce.currentIceMeter;
+        IceCreamText.text = "x " + iceCreamLeft;
+        CakeText.text = "x " + cakesLeft;
+        PFText.text = "x " + perfectFreeze;
         if (Died)
         {
-            player.transform.position = new Vector3(215.8846f, 11.157f, 194.4f);
-            StartCoroutine(JustDied());
+            //player.transform.position = new Vector3(215.8846f, 11.157f, 194.4f);
+            //StartCoroutine(JustDied());
+            Destroy(currentPlayerInScene);
+            currentPlayerInScene = Instantiate(playerToSpawn, new Vector3(215.8846f, 15.157f, 194.4f), Quaternion.identity);
+            currentPlayerInScene.SetActive(true);
+            createIce = currentPlayerInScene.GetComponent<CreateIce>();
+            CMFreecam.GetComponent<CinemachineFreeLook>().Follow = currentPlayerInScene.transform;
+            CMFreecam.GetComponent<CinemachineFreeLook>().LookAt = currentPlayerInScene.transform;
+            //Instantiate(iceBlock, hit.point, Quaternion.identity);
+            Died = false;
         }
 
-    }
-
-    private IEnumerator JustDied()
-    {
-        
-        yield return new WaitForSeconds(1f);
-        Died = false;
     }
 }

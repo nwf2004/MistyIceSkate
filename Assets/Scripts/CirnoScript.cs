@@ -7,10 +7,12 @@ public class CirnoScript : MonoBehaviour
     public AudioSource audioSource;
     public IceSkateSound iceSkateSounds;
     private int nextSound;
+    bool canPlayNewSound;
     // Start is called before the first frame update
     void Start()
     {
         nextSound = 0;
+        canPlayNewSound = true;
     }
 
     // Update is called once per frame
@@ -18,15 +20,25 @@ public class CirnoScript : MonoBehaviour
     {
 
     }
-
+   
 
     public void SkateStart()
     {
-        audioSource.PlayOneShot(iceSkateSounds.IceSkateSounds[1]);
-        nextSound++;
-        if (nextSound == 5)
+        if (canPlayNewSound)
         {
-            nextSound = 0;
-        } 
+            audioSource.PlayOneShot(iceSkateSounds.IceSkateSounds[1]);
+            nextSound++;
+            if (nextSound == 5)
+            {
+                nextSound = 0;
+            }
+            StartCoroutine(JustPlayedSound());
+        }
+    }
+    private IEnumerator JustPlayedSound()
+    {
+        canPlayNewSound = false;
+        yield return new WaitForSeconds(.1f);
+        canPlayNewSound = true;
     }
 }
