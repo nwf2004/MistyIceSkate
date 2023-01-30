@@ -8,17 +8,22 @@ public class ThirdPersonMovement : MonoBehaviour
     float horizontal;
     float vertical;
 
-    public float currentSpeed = 0f;
     public float maxSpeed = 18f;
 
     public float turnSmoothTime = 1f;
     float turnSmoothVelocity;
 
     public bool straffing;
+    float previousStrafe;
+    public float skateAcceleration;
+    public float skateDeceleration;
+
+    public GameManager GameM;
 
     public float SkatingSpeed;
     public float strafeDirection;
-
+    float tempRotation;
+    bool died;
     //
 
     [SerializeField] CharacterController moveController;
@@ -94,6 +99,9 @@ public class ThirdPersonMovement : MonoBehaviour
     static readonly int HashBraking = Animator.StringToHash("Braking");
     static readonly int HashForward = Animator.StringToHash("Forward");
     static readonly int HashStrafe = Animator.StringToHash("Strafe");
+    static readonly int HashTurn = Animator.StringToHash("Turn");
+
+    float toTurn = 0;
 
     public bool IsRunning { get; private set; }
     float runStartTime;
@@ -188,33 +196,28 @@ public class ThirdPersonMovement : MonoBehaviour
         // Interpolate position
         interpolatedTransform.position = Vector3.Lerp(iPositionNow, iPositionNext, (Time.time - Time.fixedTime) / Time.fixedDeltaTime);
 
-        if (Input.GetKey(KeyCode.Space))
-        {
-            wantsToJump = true;
-        }
+
         if (!Input.GetKey(KeyCode.LeftShift))
         {
             straffing = false;
-            horizontal = Input.GetAxisRaw("Horizontal");
-            vertical = Input.GetAxisRaw("Vertical");
-            if (Input.GetAxisRaw("Horizontal") != 0)
-            {
-                //float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-                transform.Rotate(new Vector3(0.0f, horizontal * 50, 0.0f) * Time.deltaTime);
-            }
+
         }
         else
         {
             straffing = true;
         }
+        if (Input.GetKey(KeyCode.Space))
+        {
+            wantsToJump = true;
+        }
     }
 
     void LateUpdate()
     {
-       Vector3 rotation = transform.localEulerAngles;
-        RotationDelta = Mathf.DeltaAngle(rotation.y, PrevRotation.y) * Time.deltaTime;
-        PrevRotation = rotation;
-        
+        /*Vector3 rotation = transform.localEulerAngles;
+         RotationDelta = Mathf.DeltaAngle(rotation.y, PrevRotation.y) * Time.deltaTime;
+         PrevRotation = rotation;*/
+
         //.normalized is so that when going diagonal we don't move extra fast
         /*Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
 
@@ -230,23 +233,86 @@ public class ThirdPersonMovement : MonoBehaviour
             //time.Deltatime to make it frame rate independent
             //Cirno.transform.Rotate(Quaternion.Euler(0f, angle, 0f));
         }*/
-        
-        
-
+        /*if (died)
+        {
+            transform.position = new Vector3(215.8846f, 11.157f, 194.4f);
+            iPositionNow = iPositionNext;
+            iPositionNext = transform.localPosition;
+            died = false;
+        }*/
     }
 
     void FixedUpdate()
     {
-        if (MovementLocks > 0)
+        if (MovementLocks > 0 || died)
         {
             wantsToJump = false;
             iPositionNow = iPositionNext;
             iPositionNext = transform.localPosition;
+            //currentSpeed = 0;
             return;
         }
+        if (GameM.Died == false)
+        {
+            Movement();
+        }
+        else
+        {
+            currentMoveSpeed = 0;
+        }
+        animator.SetFloat(HashForward, currentMoveSpeed/10);
+        //Debug.Log(currentMoveSpeed);
+        if (!straffing)
+        {
 
-        Movement();
-        animator.SetFloat(HashForward, SkatingSpeed);
+            horizontal = Input.GetAxisRaw("Horizontal");
+            vertical = Input.GetAxisRaw("Vertical");
+            if (horizontal != 0)
+            {
+                Debug.Log(toTurn);
+                //float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+                transform.Rotate(new Vector3(0.0f, horizontal * 50, 0.0f) * Time.deltaTime);
+                if (horizontal < 0 && toTurn > -1)
+                {
+                    toTurn -= 3 * Time.deltaTime;
+                }
+                if (horizontal > 0 && toTurn < 1)
+                {
+                    toTurn += 3 * Time.deltaTime;
+                }
+            }
+            else
+            {
+                if (toTurn > .1f)
+                {
+                    toTurn -= 3 * Time.deltaTime;
+                }
+                else if (toTurn < -.1f)
+                {
+                    toTurn += 3 * Time.deltaTime;
+                }
+                else
+                {
+                    toTurn = 0;
+                }
+            }
+            animator.SetFloat(HashTurn, toTurn);
+        }
+        else
+        {
+            if (toTurn > .1f)
+            {
+                toTurn -= 3 * Time.deltaTime;
+            }
+            else if (toTurn < -.1f)
+            {
+                toTurn += 3 * Time.deltaTime;
+            }
+            else
+            {
+                toTurn = 0;
+            }
+        }
         if (fallVelocity.y < 0)
         {
             animator.SetBool(HashFalling, true);
@@ -256,6 +322,7 @@ public class ThirdPersonMovement : MonoBehaviour
             animator.SetBool(HashFalling, false);
         }
         wantsToJump = false;
+
     }
 
     // Update is called once per frame
@@ -283,7 +350,7 @@ public class ThirdPersonMovement : MonoBehaviour
     void GetTargetVelocityAndAcceleration(Vector2 moveInput, bool wasRunning, bool wasGrounded, out Vector3 moveDirection, out float targetSpeed, out float speedAcceleration, out float directionAcceleration)
     {
         IsRunning = moveInput != Vector2.zero && MovementLocks == 0;
-        moveDirection = transform.forward * moveInput.y + transform.right * moveInput.x;
+        moveDirection = transform.forward * 1f + transform.right * moveInput.x;
 
         if (IsRunning)
         {
@@ -368,98 +435,132 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             OnLeftGround?.Invoke();
         }
-        Vector2 moveInput = Vector3.zero;
-        if (!straffing)
-        {
-            // Get move direction
-            //horizontal = Input.GetAxisRaw("Horizontal");
-            vertical = Input.GetAxisRaw("Vertical");
-            if (vertical > 0)
+        Vector2 moveInput;
+        
+            if (!straffing)
             {
-
-                SkatingSpeed += 1 * Time.deltaTime;
-                if (SkatingSpeed > 1)
-                    SkatingSpeed = 1;
+            if (Grounded)
+            {
+                // Get move direction
+                //horizontal = Input.GetAxisRaw("Horizontal");
+                vertical = Input.GetAxisRaw("Vertical");
+                if (vertical > 0)
+                {
+                    //
+                }
+                if (vertical < 0)
+                {
+                    if (currentMoveSpeed < 2)
+                    {
+                        currentMoveSpeed = 0;
+                        speedDeccelerationGrounded = .1f;
+                        StopBrakingAnimation();
+                    }
+                    else
+                    {
+                        speedDeccelerationGrounded = 1f;
+                        PlayBrakingAnimation();
+                    }
+                }
+                else
+                {
+                    speedDeccelerationGrounded = .1f;
+                    StopBrakingAnimation();
+                }
             }
+            float verticalNotBelowZero;
             if (vertical < 0)
             {
-
-                SkatingSpeed -= 1 * Time.deltaTime;
-                if (SkatingSpeed < 0)
-                    SkatingSpeed = 0;
-                else
-                    PlayBrakingAnimation();
+                verticalNotBelowZero = 0;
             }
             else
             {
-                StopBrakingAnimation();
+                verticalNotBelowZero = vertical;
             }
             //if they arent inputing, set the stafespeed for when there is no input
-            moveInput = MovementControlLocks == 0 ? new Vector2(0.0f, SkatingSpeed).normalized : Vector2.zero;
-            horizontal *= vertical == 0f ? strafeSpeedMultiplier : strafeSpeedMultiplierWhileMoving;
-        }
-        else
-        {
-            // Get move direction
-            horizontal = Input.GetAxisRaw("Horizontal");
-            vertical = Input.GetAxisRaw("Vertical");
-            if (vertical > 0)
-            {
-
-                SkatingSpeed += 1 * Time.deltaTime;
-                if (SkatingSpeed > 1)
-                    SkatingSpeed = 1;
-            }
-            if (vertical < 0)
-            {
-
-                SkatingSpeed -= 1 * Time.deltaTime;
-                if (SkatingSpeed < 0)
-                    SkatingSpeed = 0;
-                else
-                PlayBrakingAnimation();
+            moveInput = MovementControlLocks == 0 ? new Vector2(0.0f, verticalNotBelowZero).normalized : Vector2.zero;
+                horizontal *= vertical == 0f ? strafeSpeedMultiplier : strafeSpeedMultiplierWhileMoving;
             }
             else
             {
-                StopBrakingAnimation();
+            if (Grounded)
+            {
+                // Get move direction
+                horizontal = Input.GetAxisRaw("Horizontal");
+                vertical = Input.GetAxisRaw("Vertical");
+                if (vertical > 0)
+                {
+                    //
+                }
+                if (vertical < 0)
+                {
+                    if (currentMoveSpeed < 2)
+                    {
+                        currentMoveSpeed = 0;
+                        speedDeccelerationGrounded = .1f;
+                        StopBrakingAnimation();
+                    }
+                    else
+                    { 
+                        speedDeccelerationGrounded = 1f;
+                        PlayBrakingAnimation();
+                    }
+                }
+                else
+                {
+                    speedDeccelerationGrounded = .1f;
+                    StopBrakingAnimation();
+                }
+            }
+            float verticalNotBelowZero;
+            if (vertical < 0)
+            {
+                verticalNotBelowZero = 0;
+            }
+            else
+            {
+                verticalNotBelowZero = vertical;
             }
             //if conrols arent locking, take user input for the move inout
-            moveInput = MovementControlLocks == 0 ? new Vector2(horizontal, SkatingSpeed).normalized : Vector2.zero;
-            //if they arent inputing, set the stafespeed for when there is no input
-            horizontal *= vertical == 0f ? strafeSpeedMultiplier : strafeSpeedMultiplierWhileMoving;
-        }
 
-        if (horizontal > 0 && straffing)
-        {
-            strafeDirection += 2 * Time.deltaTime;
-            if (strafeDirection > 1)
-                strafeDirection = 1;
-            animator.SetFloat(HashStrafe, strafeDirection);
-        }
-        else if (horizontal < 0 && straffing)
-        {
-            strafeDirection -= 2 * Time.deltaTime;
-            if (strafeDirection < -1)
-                strafeDirection = -1;
-            animator.SetFloat(HashStrafe, strafeDirection);
-        }
-        else
-        {
-            if (strafeDirection > 0.1f)
-            {
-                strafeDirection -= 2 * Time.deltaTime;
+            if (vertical < 0) { moveInput = MovementControlLocks == 0 ? new Vector2(0.0f, verticalNotBelowZero).normalized : Vector2.zero; }
+            else { moveInput = MovementControlLocks == 0 ? new Vector2(horizontal, verticalNotBelowZero).normalized : Vector2.zero; }
+                
+                //if they arent inputing, set the stafespeed for when there is no input
+                horizontal *= vertical == 0f ? strafeSpeedMultiplier : strafeSpeedMultiplierWhileMoving;
             }
-            else if (strafeDirection < -0.1f)
+
+            if (horizontal > 0 && straffing)
             {
-                strafeDirection += 2 * Time.deltaTime;
+                strafeDirection += 1 * Time.deltaTime;
+                if (strafeDirection > .5f)
+                    strafeDirection = .5f;
+                animator.SetFloat(HashStrafe, strafeDirection);
+            }
+            else if (horizontal < 0 && straffing)
+            {
+                strafeDirection -= 1 * Time.deltaTime;
+                if (strafeDirection < -.5f)
+                    strafeDirection = -.5f;
+                animator.SetFloat(HashStrafe, strafeDirection);
             }
             else
             {
-                strafeDirection = 0;
+                if (strafeDirection > 0.1f)
+                {
+                    strafeDirection -= 1 * Time.deltaTime;
+                }
+                else if (strafeDirection < -0.1f)
+                {
+                    strafeDirection += 1 * Time.deltaTime;
+                }
+                else
+                {
+                    strafeDirection = 0;
+                }
+                animator.SetFloat(HashStrafe, strafeDirection);
             }
-            animator.SetFloat(HashStrafe, strafeDirection);
-        }
-
+        //Debug.Log("Move Input :" + moveInput);
         GetTargetVelocityAndAcceleration(moveInput, wasRunning, wasGrounded, out Vector3 moveDirection, out float targetSpeed, out float speedAcceleration, out float directionAcceleration);
         
         if (currentMoveSpeed > targetSpeed && targetSpeed != 0f)
@@ -476,9 +577,10 @@ public class ThirdPersonMovement : MonoBehaviour
         else if (moveDirection != Vector3.zero)
         {
             currentMoveDirection = Vector3.Lerp(currentMoveDirection, moveDirection, directionAcceleration * Time.deltaTime);
+
         }
 
-        moveVelocity = currentMoveDirection * (currentMoveSpeed * SkatingSpeed);
+        moveVelocity = currentMoveDirection * (currentMoveSpeed);
 
         if (IsRunning && !wasRunning)
         {
@@ -501,7 +603,7 @@ public class ThirdPersonMovement : MonoBehaviour
                 Grounded = false;
                 OnLeftGround?.Invoke();
                 currentMoveSpeed *= speedLostOnJump;
-                OnJump?.Invoke();
+                StartCoroutine(JustJumped());
             }
         }
         else
@@ -516,8 +618,8 @@ public class ThirdPersonMovement : MonoBehaviour
         iPositionNow = transform.localPosition;
 
         // Combine velocities and move
-        Debug.Log("Fall Velocity :" + fallVelocity);
-        combinedVelocity = moveVelocity + fallVelocity + externalVelocity + physicsVelocity;
+        //Debug.Log("Fall Velocity :" + fallVelocity);
+        combinedVelocity = (moveVelocity) + fallVelocity + externalVelocity + physicsVelocity;
         Vector3 moveDelta = combinedVelocity;
         
 
@@ -527,9 +629,9 @@ public class ThirdPersonMovement : MonoBehaviour
             //currentMoveDirection = Vector3.ProjectOnPlane(currentMoveDirection, Vector3.ProjectOnPlane(transform.forward, groundHit.normal)).normalized;
             moveDelta.y -= downwardForceAlongSlope;
         }
-        //Debug.Log("Skating Speed: " + SkatingSpeed + "moveDelta: " + moveDelta);
+       
         
-        var collisionFlags = moveController.Move(moveDelta * SkatingSpeed * Time.deltaTime);
+        var collisionFlags = moveController.Move(moveDelta * Time.deltaTime);
 
         iPositionNext = transform.localPosition;
 
@@ -557,22 +659,7 @@ public class ThirdPersonMovement : MonoBehaviour
         //horizontal = Input.GetAxisRaw("Horizontal");
         //vertical = Input.GetAxisRaw("Vertical");
         
-        if (Input.GetKey(KeyCode.W))
-        {
-            
-            if (currentSpeed < maxSpeed)
-            {
-                //Debug.Log("Among us!");
-                currentSpeed += 1 * Time.deltaTime;
-            }
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            if (currentSpeed > 0)
-            {
-                currentSpeed -= 1 * Time.deltaTime;
-            }
-        }
+        
     }
 
     void PlayRunAnimation()
@@ -597,7 +684,7 @@ public class ThirdPersonMovement : MonoBehaviour
     }
     void PlayJumpAnimation()
     {
-        animator.SetTrigger(HashJumping);
+        StartCoroutine(JustJumped());
     }
 
     void PlayBrakingAnimation()
@@ -617,5 +704,24 @@ public class ThirdPersonMovement : MonoBehaviour
     void StopBrakingAnimation()
     {
         animator.SetBool(HashBraking, false);
+    }
+    private IEnumerator JustJumped()
+    {
+        
+            animator.SetBool(HashJumping, true);
+        
+       
+            yield return new WaitForSeconds(.1f);
+        animator.SetBool(HashJumping, false);
+    }
+
+    private void OnTriggerEnter(Collider collision)
+    {
+        if (collision.tag == "Water")
+        {
+            strafeDirection = 0f;
+            GameM.Died = true;
+         
+        }
     }
 }
