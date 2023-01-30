@@ -738,7 +738,7 @@ public class ThirdPersonMovement : MonoBehaviour
         if (collision.tag == "PowerUp")
         {
             Destroy(collision.gameObject);
-            createIce.currentIceMeter += 30;
+            createIce.currentIceMeter += 50;
         }
     }
 }
