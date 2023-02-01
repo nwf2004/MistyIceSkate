@@ -14,6 +14,11 @@ public class ThirdPersonMovement : MonoBehaviour
     float turnSmoothVelocity;
     public CirnoScript cirnoScript;
 
+    public AudioSource Food;
+    public AudioClip FoodSound;
+    public AudioSource PowerUp;
+    public AudioClip PowerUpSound;
+
     public bool straffing;
     float previousStrafe;
     public float skateAcceleration;
@@ -727,16 +732,19 @@ public class ThirdPersonMovement : MonoBehaviour
         }
         if (collision.tag == "Cake")
         {
+            Food.PlayOneShot(FoodSound);
             Destroy(collision.gameObject);
             GameM.cakesLeft--;
         }
         if (collision.tag == "IceCream")
         {
+            Food.PlayOneShot(FoodSound);
             Destroy(collision.gameObject);
             GameM.iceCreamLeft--;
         }
         if (collision.tag == "PowerUp")
         {
+            PowerUp.PlayOneShot(PowerUpSound);
             Destroy(collision.gameObject);
             createIce.currentIceMeter += 50;
         }

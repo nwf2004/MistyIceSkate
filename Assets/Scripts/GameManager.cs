@@ -17,6 +17,10 @@ public class GameManager : MonoBehaviour
     public float cakesLeft;
     public float iceCreamLeft;
     float perfectFreeze;
+    public Color red;
+    public Color blue;
+    public bool readyForIce = true;
+    //BDFFFE FF001B 255 0 27 255
     // Start is called before the first frame update
     //display.text = countDown.ToString();
     void Start()
@@ -33,6 +37,14 @@ public class GameManager : MonoBehaviour
         IceCreamText.text = "x " + iceCreamLeft;
         CakeText.text = "x " + cakesLeft;
         PFText.text = "x " + perfectFreeze;
+        if (perfectFreeze < 6)
+        {
+            PFText.color = red;
+        }
+        else
+        {
+            PFText.color = blue;
+        }
         if (Died)
         {
             //player.transform.position = new Vector3(215.8846f, 11.157f, 194.4f);

@@ -9,6 +9,8 @@ public class CreateIce : MonoBehaviour
     public bool wasGrounded;
     public Vector3 LastPlaceOnGround;
     public GameObject iceBlock;
+    public GameManager gameManager;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -18,6 +20,11 @@ public class CreateIce : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (gameManager.iceCreamLeft < 1 && gameManager.cakesLeft < 1 && gameManager.readyForIce == true)
+        {
+            currentIceMeter = 9999;
+            gameManager.readyForIce = false;
+        }
         //Debug.Log(LastPlaceOnGround);
         LastPlaceOnGround = transform.position;
         LastPlaceOnGround = LastPlaceOnGround + (Vector3.down * 1.2f);
